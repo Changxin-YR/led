@@ -101,3 +101,20 @@
 - [x] Review and stage only source, project configuration, and intentional documentation
 - [x] Run the required static check and build
 - [x] Commit and push to `origin/master`
+
+---
+
+## T-20260804-002
+
+- **状态**：`in_progress`
+- **目标**：在 LED 展示页实现可靠的横屏显示，并将常规页面调整为不侵入系统栏的沉浸式深色布局。
+- **范围**：窗口方向与系统栏状态管理、主题色常量、DisplayPage 生命周期、静态回归检查、构建与设备验证。
+
+### 检查清单
+
+- [ ] 首页和配置页保留状态栏、导航栏与安全区，系统栏颜色与应用主题一致
+- [ ] LED 展示页按“横屏显示”配置进入横屏全屏；关闭时保持竖屏全屏
+- [ ] 从展示页返回后恢复竖屏、系统栏、常亮和亮度状态
+- [ ] 先完成窗口状态回归测试的红绿验证
+- [ ] 完成静态检查、构建和可用设备验证
+- [ ] 回填 design.md、changes.md、design-qa.md 并提交
