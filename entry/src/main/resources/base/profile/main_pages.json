@@ -1,0 +1,10 @@
+{
+  "src": [
+    "pages/Index",
+    "pages/DisplayPage",
+    "pages/TemplatePage",
+    "pages/HistoryPage",
+    "pages/ColorPickerPage",
+    "pages/CounterPage"
+  ]
+}

@@ -1,0 +1,8 @@
+.idea/
+.hvigor/
+oh_modules/
+entry/build/
+build/
+*.hap
+*.log
+.DS_Store
