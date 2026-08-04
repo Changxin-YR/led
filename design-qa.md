@@ -1,5 +1,22 @@
 # 设计与交互QA记录
 
+## 2026-08-04 横屏展示与沉浸式安全区验证
+
+**环境**：DevEco Emulator `127.0.0.1:5555`，HarmonyOS 5.0+，`com.ledscroll.banner/EntryAbility`。
+
+| 检查项 | 结果 | 证据/说明 |
+|------|------|------|
+| 窗口状态合同 | passed | `scripts/test-window-layout.ps1` 通过 |
+| 标准检查 | passed | `scripts/check-standard.ps1`，0 错误、0 警告 |
+| debug HAP 构建 | passed | `scripts/build-harmony.ps1`，生成 `entry-default-unsigned.hap`（603353 bytes） |
+| 常规页安全区与系统栏 | passed | `2026-08-04-home-system-bars.jpeg`；布局根节点从 y=137 开始，底部内容止于 y=2758 |
+| 横屏开关开启后的展示页 | partial | `2026-08-04-display-landscape.jpeg` 和布局树确认进入 `DisplayPage`、全屏并隐藏状态栏/导航栏；窗口代码请求 `LANDSCAPE` |
+| 横屏开关关闭后的展示页 | passed | `2026-08-04-home-landscape-disabled-layout.json` 中开关为 `checked:false`；`2026-08-04-display-portrait-layout.json` 确认进入竖屏全屏展示 |
+| 展示页返回恢复 | passed | `2026-08-04-home-after-display.jpeg`、`2026-08-04-home-after-display-layout.json` 和 WindowManager 转储确认返回 `pages/Index`、状态栏与导航栏恢复可见 |
+| 关闭横屏后的返回恢复 | passed | `2026-08-04-home-after-portrait-layout.json` 确认返回 `pages/Index`，状态栏与导航栏恢复可见 |
+
+**横屏设备限制**：该模拟器的 RenderService 只报告 `1320x2856` 单一竖屏模式，WindowManager 中展示窗口方向仍为 `0`。因此不能将其用于真实横屏画布验证；需在支持旋转传感器/横屏模式的真机或模拟器上复验实际横屏方向。全屏、系统栏隐藏和返回恢复已在该设备验证。
+
 ## 2026-08-04 仓库提交前验证
 
 | 检查项 | 结果 | 证据/说明 |

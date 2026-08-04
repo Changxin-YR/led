@@ -1,6 +1,8 @@
 export class AppTheme {
   static readonly PAGE_BG: string = '#030A16'
   static readonly PAGE_BG_DEEP: string = '#01050D'
+  static readonly SYSTEM_STATUS_BAR: string = '#030A16'
+  static readonly SYSTEM_NAVIGATION_BAR: string = '#01050D'
   static readonly SURFACE: string = '#091629'
   static readonly SURFACE_RAISED: string = '#0D1B30'
   static readonly SURFACE_SOFT: string = '#111B2D'

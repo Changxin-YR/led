@@ -93,6 +93,15 @@ if (Test-Path "tasks.md") {
   }
 }
 
+# 8. 窗口与系统栏状态合同
+Write-Host "`n[窗口状态合同]" -ForegroundColor White
+try {
+  & (Join-Path $PSScriptRoot 'test-window-layout.ps1')
+} catch {
+  Write-Host "  [FAIL] 窗口状态合同未通过" -ForegroundColor Red
+  $script:ErrorCount++
+}
+
 # 结果
 Write-Host "`n=== 检查结果 ===" -ForegroundColor Cyan
 if ($ErrorCount -eq 0) {

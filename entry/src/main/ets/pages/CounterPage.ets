@@ -1,31 +1,10 @@
-import { router, window } from '@kit.ArkUI'
-import { ScreenService } from '../services/ScreenService'
+import { router } from '@kit.ArkUI'
 import { AppTheme } from '../common/Theme'
 
 @Entry
 @Component
 struct CounterPage {
   @State count: number = 0
-  private screenService: ScreenService = ScreenService.getInstance()
-
-  aboutToAppear(): void {
-    this.initScreen()
-  }
-
-  private async initScreen(): Promise<void> {
-    try {
-      const win = await window.getLastWindow(getContext(this))
-      await this.screenService.init(win)
-      await this.screenService.enterFullScreen()
-      await this.screenService.setKeepScreenOn(true)
-    } catch (_) {
-    }
-  }
-
-  async aboutToDisappear(): Promise<void> {
-    await this.screenService.exitFullScreen()
-    await this.screenService.setKeepScreenOn(false)
-  }
 
   build() {
     Column() {

@@ -48,17 +48,8 @@ struct DisplayPage {
     try {
       const win = await window.getLastWindow(getContext(this))
       await this.screenService.init(win)
-      await this.screenService.enterFullScreen()
-      await this.screenService.setKeepScreenOn(true)
-      await this.screenService.setMaxBrightness()
-
-      if (this.config?.isLandscape) {
-        await this.screenService.setLandscape(true)
-      }
-
-      const displayInfo = display.getDefaultDisplaySync()
-      this.screenWidth = px2vp(displayInfo.width)
-      this.screenHeight = px2vp(displayInfo.height)
+      await this.screenService.enterDisplayMode(this.config?.isLandscape === true)
+      this.updateDisplaySize()
 
       this.calculateTextWidth()
       this.startAnimation()
@@ -94,12 +85,13 @@ struct DisplayPage {
 
   private async cleanup(): Promise<void> {
     this.clearAllTimers()
-    await this.screenService.exitFullScreen()
-    await this.screenService.setKeepScreenOn(false)
-    await this.screenService.restoreBrightness()
-    if (this.config?.isLandscape) {
-      await this.screenService.setLandscape(false)
-    }
+    await this.screenService.exitDisplayMode()
+  }
+
+  private updateDisplaySize(): void {
+    const displayInfo = display.getDefaultDisplaySync()
+    this.screenWidth = px2vp(displayInfo.width)
+    this.screenHeight = px2vp(displayInfo.height)
   }
 
   private clearAllTimers(): void {
