@@ -47,6 +47,12 @@ export class TemplateService {
       speedLevel: SpeedLevel.FAST, fontSize: 110, icon: 'placeholder_sale'
     },
     {
+      id: 't15', name: '限时优惠', category: TemplateCategory.PROMO,
+      text: '限时特价', textColor: '#FF8C00', backgroundColor: '#000000',
+      displayMode: DisplayMode.BLINK, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
+      speedLevel: SpeedLevel.NORMAL, fontSize: 100, icon: 'placeholder_discount'
+    },
+    {
       id: 't8', name: '安全提示', category: TemplateCategory.NOTICE,
       text: '注意安全', textColor: '#168BFF', backgroundColor: '#000000',
       displayMode: DisplayMode.SCROLL_HORIZONTAL, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
@@ -75,6 +81,18 @@ export class TemplateService {
       text: '生日快乐', textColor: '#FFD700', backgroundColor: '#000000',
       displayMode: DisplayMode.BREATH, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
       speedLevel: SpeedLevel.SLOW, fontSize: 100, icon: 'placeholder_birthday'
+    },
+    {
+      id: 't13', name: '浪漫表白', category: TemplateCategory.LOVE,
+      text: 'I Love You', textColor: '#FF69B4', backgroundColor: '#000000',
+      displayMode: DisplayMode.BREATH, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
+      speedLevel: SpeedLevel.SLOW, fontSize: 100, icon: 'placeholder_love'
+    },
+    {
+      id: 't14', name: '心动告白', category: TemplateCategory.LOVE,
+      text: '我喜欢你', textColor: '#FF1493', backgroundColor: '#000000',
+      displayMode: DisplayMode.BLINK, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
+      speedLevel: SpeedLevel.NORMAL, fontSize: 110, icon: 'placeholder_heart'
     }
   ]
 

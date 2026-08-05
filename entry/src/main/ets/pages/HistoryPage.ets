@@ -149,7 +149,8 @@ struct HistoryPage {
     .onClick(() => this.useRecord(item))
   }
 
-  private useRecord(record: HistoryRecord): void {
+  private async useRecord(record: HistoryRecord): Promise<void> {
+    await this.storageService.saveLastConfig(record.config)
     router.pushUrl({ url: 'pages/DisplayPage', params: new DisplayRouteParams(JSON.stringify(record.config)) })
   }
 

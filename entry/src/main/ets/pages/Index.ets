@@ -33,8 +33,9 @@ struct Index {
   @State showBorder: boolean = true
   @State bannerBorderColor: string = AppTheme.ACCENT
   @State isLandscape: boolean = true
-  @State selectedColorIndex: number = 5
+  @State selectedColorIndex: number = -1
   @State selectedModeIndex: number = 2
+  @State isStarting: boolean = false
   private storageService: StorageService = StorageService.getInstance()
 
   private modeOptions: ModeOption[] = [
@@ -413,6 +414,8 @@ struct Index {
       .borderRadius(12)
       .border({ width: 1, color: '#64F6FF' })
       .shadow({ radius: 14, color: '#007FA8', offsetX: 0, offsetY: 2 })
+      .opacity(this.isStarting ? 0.6 : 1.0)
+      .enabled(!this.isStarting)
       .onClick(() => this.startDisplay())
   }
 
@@ -454,9 +457,17 @@ struct Index {
       promptAction.showToast({ message: '请输入要显示的文字' })
       return
     }
-    const config = this.buildConfig()
-    await this.storageService.saveLastConfig(config)
-    await this.storageService.addHistory(config)
-    router.pushUrl({ url: 'pages/DisplayPage', params: new DisplayRouteParams(JSON.stringify(config)) })
+    if (this.isStarting) return
+    this.isStarting = true
+    try {
+      const config = this.buildConfig()
+      await this.storageService.saveLastConfig(config)
+      await this.storageService.addHistory(config)
+      router.pushUrl({ url: 'pages/DisplayPage', params: new DisplayRouteParams(JSON.stringify(config)) })
+    } catch (e) {
+      promptAction.showToast({ message: '启动失败，请重试' })
+    } finally {
+      this.isStarting = false
+    }
   }
 }

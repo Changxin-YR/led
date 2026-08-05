@@ -20,6 +20,7 @@ struct ColorPickerPage {
 
   aboutToAppear(): void {
     this.loadCustomColors()
+    this.updateColorFromHsv()
   }
 
   private async loadCustomColors(): Promise<void> {
@@ -111,11 +112,6 @@ struct ColorPickerPage {
         .fontColor(AppTheme.TEXT_PRIMARY)
         .margin({ left: 6 })
       Blank()
-      Text('⌑')
-        .fontSize(24)
-        .fontColor(AppTheme.TEXT_PRIMARY)
-        .width(40)
-        .textAlign(TextAlign.Center)
     }
     .width('100%')
     .height(62)
@@ -297,6 +293,10 @@ struct ColorPickerPage {
           .textAlign(TextAlign.Center)
           .borderRadius(12)
           .border({ width: 1, color: '#35455E' })
+          .onClick(async () => {
+            await this.storageService.saveCustomColor(this.currentColor)
+            this.customColors = await this.storageService.getCustomColors()
+          })
       }
       .width('100%')
       .alignItems(VerticalAlign.Center)

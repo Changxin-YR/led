@@ -1,18 +1,46 @@
 import { router } from '@kit.ArkUI'
+import { preferences } from '@kit.ArkData'
 import { AppTheme } from '../common/Theme'
 
 @Entry
 @Component
 struct CounterPage {
   @State count: number = 0
+  private store: preferences.Preferences | null = null
+
+  aboutToAppear(): void {
+    this.loadCount()
+  }
+
+  private async loadCount(): Promise<void> {
+    try {
+      this.store = await preferences.getPreferences(getContext(this), 'led_banner_store')
+      const saved = await this.store.get('counter_value', 0) as number
+      this.count = saved
+    } catch (e) {
+      this.count = 0
+    }
+  }
+
+  private async updateCount(value: number): Promise<void> {
+    this.count = value
+    if (this.store) {
+      try {
+        await this.store.put('counter_value', value)
+        await this.store.flush()
+      } catch (e) {
+        // persistence failed, counter still updates in memory
+      }
+    }
+  }
 
   build() {
     Column() {
       this.buildHeader()
       this.buildCounterPanel()
       Row() {
-        this.buildCounterButton('−', AppTheme.DANGER, () => this.count--)
-        this.buildCounterButton('+', AppTheme.SUCCESS, () => this.count++)
+        this.buildCounterButton('−', AppTheme.DANGER, () => this.updateCount(this.count - 1))
+        this.buildCounterButton('+', AppTheme.SUCCESS, () => this.updateCount(this.count + 1))
       }
       .width('100%')
       .constraintSize({ maxWidth: 720 })
@@ -42,7 +70,7 @@ struct CounterPage {
         .fontSize(15)
         .fontColor(AppTheme.WARNING)
         .padding({ left: 12, right: 2, top: 10, bottom: 10 })
-        .onClick(() => this.count = 0)
+        .onClick(() => this.updateCount(0))
     }
     .width('100%')
     .height(62)

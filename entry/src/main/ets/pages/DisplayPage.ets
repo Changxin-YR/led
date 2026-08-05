@@ -1,4 +1,4 @@
-import { router } from '@kit.ArkUI'
+import { router, promptAction } from '@kit.ArkUI'
 import { window } from '@kit.ArkUI'
 import { display } from '@kit.ArkUI'
 import { BannerConfig, DisplayMode, ScrollDirection } from '../models/BannerConfig'
@@ -37,9 +37,18 @@ struct DisplayPage {
   private tapTimer: number = -1
 
   aboutToAppear(): void {
-    const params = router.getParams() as Record<string, string>
-    if (params && params['config']) {
-      this.config = JSON.parse(params['config']) as BannerConfig
+    try {
+      const params = router.getParams() as Record<string, string>
+      if (params && params['config']) {
+        this.config = JSON.parse(params['config']) as BannerConfig
+      }
+    } catch (error) {
+      console.error(`DisplayPage: invalid display config: ${JSON.stringify(error)}`)
+    }
+    if (!this.config) {
+      promptAction.showToast({ message: '配置加载失败' })
+      router.back()
+      return
     }
     this.initScreen()
   }
@@ -170,6 +179,9 @@ struct DisplayPage {
 
   private startAnimation(): void {
     if (!this.config) return
+    if (this.config.textColor === '#RAINBOW' && this.config.displayMode !== DisplayMode.NEON) {
+      this.startNeon()
+    }
     switch (this.config.displayMode) {
       case DisplayMode.SCROLL_HORIZONTAL:
         this.startScrollH()
@@ -221,15 +233,18 @@ struct DisplayPage {
     if (!this.config) return
     const duration = this.animationService.getScrollDuration(this.config.speedLevel)
     const textHeight = this.config.fontSize * 1.2
-    const startPos = this.screenHeight
-    const endPos = -textHeight
+    const isTtb = this.config.scrollDirection === ScrollDirection.TOP_TO_BOTTOM
+    const startPos = isTtb ? -textHeight : this.screenHeight
+    const endPos = isTtb ? this.screenHeight : -textHeight
     const steps = Math.max(duration / 16, 1)
     const increment = (endPos - startPos) / steps
 
     this.offsetY = startPos
     this.scrollTimer = setInterval(() => {
       this.offsetY += increment
-      if (this.offsetY <= endPos) {
+      if (isTtb && this.offsetY >= endPos) {
+        this.offsetY = startPos
+      } else if (!isTtb && this.offsetY <= endPos) {
         this.offsetY = startPos
       }
     }, 16)
@@ -274,7 +289,11 @@ struct DisplayPage {
     if (!this.config) return
     const interval = this.animationService.getFlipInterval(this.config.speedLevel)
     const lines = this.config.text.split('\n')
-    if (lines.length <= 1) return
+    if (lines.length <= 1) {
+      this.currentLineIndex = 0
+      return
+    }
+    this.currentLineIndex = 0
     this.flipTimer = setInterval(() => {
       animateTo({ duration: 300, curve: Curve.EaseInOut }, () => {
         this.textOpacity = 0

@@ -1,7 +1,8 @@
-import { router } from '@kit.ArkUI'
+import { router, promptAction } from '@kit.ArkUI'
 import { Template, TemplateCategory } from '../models/Template'
 import { BannerConfig, DEFAULT_CONFIG, SpeedLevel, DisplayRouteParams } from '../models/BannerConfig'
 import { TemplateService } from '../services/TemplateService'
+import { StorageService } from '../services/StorageService'
 import { Utils } from '../common/Utils'
 import { Constants } from '../common/Constants'
 import { AppTheme } from '../common/Theme'
@@ -20,6 +21,7 @@ struct TemplatePage {
   @State editTemplate: Template | null = null
   @State columnTemplate: string = '1fr 1fr'
   private templateService: TemplateService = TemplateService.getInstance()
+  private storageService: StorageService = StorageService.getInstance()
 
   aboutToAppear(): void {
     this.categories = this.templateService.getCategories()
@@ -28,9 +30,7 @@ struct TemplatePage {
   }
 
   private loadTemplates(): void {
-    this.templates = this.selectedCategory === TemplateCategory.CHEER ?
-      this.templateService.getAllTemplates().slice(0, 8) :
-      this.templateService.getTemplatesByCategory(this.selectedCategory)
+    this.templates = this.templateService.getTemplatesByCategory(this.selectedCategory)
   }
 
   build() {
@@ -100,14 +100,6 @@ struct TemplatePage {
               this.loadTemplates()
             })
         })
-        Text('•••')
-          .width(42)
-          .height(34)
-          .fontSize(14)
-          .fontColor(AppTheme.TEXT_SECONDARY)
-          .backgroundColor(AppTheme.SURFACE_SOFT)
-          .borderRadius(18)
-          .textAlign(TextAlign.Center)
       }
       .padding({ left: 16, right: 16 })
     }
@@ -148,7 +140,7 @@ struct TemplatePage {
         .fontColor(AppTheme.TEXT_PRIMARY)
         .margin({ top: 9 })
         .maxLines(1)
-      Text(`${this.getUseCount(index)} 万次使用`)
+      Text('点击编辑并开始展示')
         .width('100%')
         .fontSize(12)
         .fontColor(AppTheme.TEXT_SECONDARY)
@@ -161,11 +153,6 @@ struct TemplatePage {
     .border({ width: 1, color: '#0878B5' })
     .shadow({ radius: 8, color: '#002F4D' })
     .onClick(() => this.openEditDialog(item))
-  }
-
-  private getUseCount(index: number): string {
-    const values: string[] = ['12.3', '18.7', '15.6', '21.4', '9.8', '11.2', '7.5', '13.9']
-    return values[index % values.length]
   }
 
   @Builder
@@ -234,8 +221,12 @@ struct TemplatePage {
     this.showEditDialog = true
   }
 
-  private confirmTemplate(): void {
-    if (!this.editTemplate || !this.editText.trim()) return
+  private async confirmTemplate(): Promise<void> {
+    if (!this.editTemplate) return
+    if (!this.editText.trim()) {
+      promptAction.showToast({ message: '请输入要显示的文字' })
+      return
+    }
     const config: BannerConfig = {
       id: Utils.generateId(), text: this.editText, textColor: this.editTemplate.textColor,
       backgroundColor: this.editTemplate.backgroundColor, fontSize: this.editFontSize,
@@ -245,6 +236,9 @@ struct TemplatePage {
       borderColor: DEFAULT_CONFIG.borderColor, isLandscape: DEFAULT_CONFIG.isLandscape,
       createdAt: Date.now()
     }
+    await this.storageService.init(getContext(this))
+    await this.storageService.saveLastConfig(config)
+    await this.storageService.addHistory(config)
     router.pushUrl({ url: 'pages/DisplayPage', params: new DisplayRouteParams(JSON.stringify(config)) })
   }
 }
