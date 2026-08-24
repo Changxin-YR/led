@@ -1,37 +1,34 @@
-# LED
+# 光迹字幕
 
-#### 介绍
-led
+光迹字幕是一款使用 ArkTS 与 ArkUI 开发的 HarmonyOS LED 滚动显示应用。它把手机屏幕变成可自定义的全屏字幕牌，适用于演唱会应援、接机、表白、促销、通知和互动等场景。应用无需登录、不依赖网络，配置和历史记录保存在设备本地。
 
-#### 软件架构
-软件架构说明
+## 核心功能
 
+- 输入文字并实时预览 LED 滚动效果。
+- 全屏播放字幕，支持双击暂停或继续、单击显示退出操作。
+- 提供应援、接机、表白、促销等场景模板，一键恢复常用配置。
+- 支持文字颜色、背景颜色、滚动速度和显示方向等参数调整。
+- 支持自定义 HSV/RGB 颜色、历史记录和计数器模式。
+- 适配手机、平板和 2-in-1 设备的响应式布局。
 
-#### 安装教程
+## 技术与隐私
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+- ArkTS、ArkUI、Stage 模型。
+- Preferences 本地持久化。
+- 暗色高对比视觉方案，关键操作提供清晰语义标签。
+- 无网络、无登录、无云同步，用户输入和历史记录不上传。
 
-#### 使用说明
+## 构建运行
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1. 使用 DevEco Studio 打开本仓库根目录。
+2. 等待 HarmonyOS SDK 与项目依赖同步完成。
+3. 选择 `entry` 模块，连接设备或启动模拟器。
+4. 执行构建并运行应用，在首页配置文字后进入全屏显示。
 
-#### 参与贡献
+## 主要目录
 
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特技
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+- `entry/src/main/ets/pages/`：首页、全屏显示、模板、历史和计数器页面。
+- `entry/src/main/ets/components/`：字幕配置、颜色选择和通用组件。
+- `entry/src/main/ets/services/`：字幕播放与本地数据服务。
+- `docs/`：设计、验收和质量检查记录。
+- `submission/`：项目文档和参赛作品材料。
