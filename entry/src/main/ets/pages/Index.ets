@@ -1,4 +1,3 @@
-import { router, promptAction } from '@kit.ArkUI'
 import { BannerConfig, DisplayMode, SpeedLevel, LEDStyle, ScrollDirection, DisplayRouteParams } from '../models/BannerConfig'
 import { ColorScheme, COLOR_PRESETS } from '../models/ColorScheme'
 import { StorageService } from '../services/StorageService'
@@ -6,6 +5,7 @@ import { Constants } from '../common/Constants'
 import { AppTheme } from '../common/Theme'
 import { Utils } from '../common/Utils'
 import { LedPanel } from '../components/LedPanel'
+import { UiContextHelper } from '../common/UiContextHelper'
 
 interface ModeOption {
   label: string
@@ -37,6 +37,7 @@ struct Index {
   @State selectedModeIndex: number = 2
   @State isStarting: boolean = false
   private storageService: StorageService = StorageService.getInstance()
+  private storageInitPromise: Promise<void> | null = null
 
   private modeOptions: ModeOption[] = [
     { label: '水平滚动', mode: DisplayMode.SCROLL_HORIZONTAL },
@@ -57,7 +58,10 @@ struct Index {
   ]
 
   aboutToAppear(): void {
-    this.initData()
+    this.storageInitPromise = this.initData()
+    this.storageInitPromise.catch((error: Error) => {
+      console.error(`Index: local storage initialization failed: ${JSON.stringify(error)}`)
+    })
   }
 
   onPageShow(): void {
@@ -65,7 +69,7 @@ struct Index {
   }
 
   private async initData(): Promise<void> {
-    await this.storageService.init(getContext(this))
+    await this.storageService.init(UiContextHelper.requireHostContext(this.getUIContext()))
     const lastConfig = await this.storageService.getLastConfig()
     if (lastConfig) {
       this.applyConfig(lastConfig)
@@ -104,7 +108,8 @@ struct Index {
 
   private buildConfig(): BannerConfig {
     return {
-      id: Utils.generateId(), text: this.text, textColor: this.textColor,
+      id: Utils.generateId(), text: this.text,
+      textColor: Utils.ensureTextContrast(this.textColor, this.bannerBackgroundColor),
       backgroundColor: this.bannerBackgroundColor, fontSize: this.fontSize,
       displayMode: this.displayMode, scrollDirection: this.scrollDirection,
       speedLevel: this.speedLevel as SpeedLevel, ledStyle: this.ledStyle,
@@ -133,6 +138,7 @@ struct Index {
       }
       .layoutWeight(1)
       .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       this.buildStartArea()
       this.buildBottomNav()
     }
@@ -144,12 +150,12 @@ struct Index {
   @Builder
   buildTitleBar() {
     Row() {
-      Text('LED')
+      Text('光迹')
         .fontSize(24)
         .fontWeight(FontWeight.Bold)
         .fontColor(AppTheme.ACCENT)
-      Text(' 滚动字幕')
-        .fontSize(21)
+      Text('字幕')
+        .fontSize(AppTheme.uiFontSize(21))
         .fontWeight(FontWeight.Bold)
         .fontColor(AppTheme.TEXT_PRIMARY)
       Blank()
@@ -159,10 +165,10 @@ struct Index {
         .width(42)
         .height(42)
         .textAlign(TextAlign.Center)
-        .onClick(() => router.pushUrl({ url: 'pages/HistoryPage' }))
+        .onClick(() => this.openRoute('pages/HistoryPage'))
     }
     .width('100%')
-    .height(52)
+    .height(AppTheme.HEADER_HEIGHT)
     .padding({ left: AppTheme.PAGE_PADDING, right: AppTheme.PAGE_PADDING })
     .alignItems(VerticalAlign.Center)
   }
@@ -171,8 +177,9 @@ struct Index {
   buildPreview() {
     Column() {
       Text('预览效果')
-        .fontSize(13)
+        .fontSize(AppTheme.uiFontSize(13))
         .fontColor(AppTheme.TEXT_SECONDARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
         .margin({ bottom: 8 })
         .alignSelf(ItemAlign.Start)
       LedPanel({
@@ -184,23 +191,25 @@ struct Index {
       })
     }
     .width('100%')
-    .margin({ bottom: 8 })
+    .margin({ bottom: AppTheme.PAGE_SECTION_GAP })
   }
 
   @Builder
   buildTextInput() {
     Column() {
       Text('输入文字')
-        .fontSize(13)
+        .fontSize(AppTheme.uiFontSize(13))
         .fontColor(AppTheme.TEXT_SECONDARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
         .margin({ bottom: 7 })
         .alignSelf(ItemAlign.Start)
       Stack({ alignContent: Alignment.BottomEnd }) {
         TextArea({ text: this.text, placeholder: '请输入要显示的文字...' })
           .width('100%')
           .height(60)
-          .fontSize(16)
+          .fontSize(AppTheme.uiFontSize(16))
           .fontColor(AppTheme.TEXT_PRIMARY)
+          .fontWeight(AppTheme.UI_FONT_WEIGHT)
           .placeholderColor(AppTheme.TEXT_MUTED)
           .backgroundColor(AppTheme.SURFACE_SOFT)
           .borderRadius(AppTheme.CONTROL_RADIUS)
@@ -209,23 +218,25 @@ struct Index {
           .maxLength(Constants.MAX_TEXT_LENGTH)
           .onChange((value: string) => this.text = value)
         Text(`${this.text.length}/${Constants.MAX_TEXT_LENGTH}`)
-          .fontSize(11)
+          .fontSize(AppTheme.uiFontSize(12))
           .fontColor(AppTheme.TEXT_SECONDARY)
+          .fontWeight(AppTheme.UI_FONT_WEIGHT)
           .margin({ right: 10, bottom: 7 })
       }
       .width('100%')
       .height(60)
     }
     .width('100%')
-    .margin({ bottom: 8 })
+    .margin({ bottom: AppTheme.PAGE_SECTION_GAP })
   }
 
   @Builder
   buildModeSelector() {
     Column() {
       Text('显示模式')
-        .fontSize(13)
+        .fontSize(AppTheme.uiFontSize(13))
         .fontColor(AppTheme.TEXT_SECONDARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
         .margin({ bottom: 7 })
         .alignSelf(ItemAlign.Start)
       Grid() {
@@ -234,8 +245,9 @@ struct Index {
             Text(item.label)
               .width('100%')
               .height(28)
-              .fontSize(13)
-              .fontColor(this.selectedModeIndex === index ? '#FFFFFF' : AppTheme.TEXT_PRIMARY)
+              .fontSize(AppTheme.uiFontSize(13))
+              .fontColor(this.selectedModeIndex === index ? AppTheme.ON_ACCENT : AppTheme.TEXT_PRIMARY)
+              .fontWeight(AppTheme.UI_FONT_WEIGHT)
               .textAlign(TextAlign.Center)
               .backgroundColor(this.selectedModeIndex === index ? '#04BCEB' : AppTheme.SURFACE_SOFT)
               .borderRadius(16)
@@ -249,12 +261,12 @@ struct Index {
         })
       }
       .columnsTemplate('1fr 1fr 1fr 1fr')
-      .columnsGap(9)
-      .rowsGap(8)
-      .height(60)
+      .columnsGap(10)
+      .rowsGap(10)
+      .height(66)
     }
     .width('100%')
-    .margin({ bottom: 8 })
+    .margin({ bottom: AppTheme.PAGE_SECTION_GAP })
   }
 
   @Builder
@@ -262,14 +274,15 @@ struct Index {
     Column() {
       Row() {
         Text('颜色方案')
-          .fontSize(13)
+          .fontSize(AppTheme.uiFontSize(13))
           .fontColor(AppTheme.TEXT_SECONDARY)
+          .fontWeight(AppTheme.UI_FONT_WEIGHT)
         Blank()
         Text('自定义 >')
-          .fontSize(13)
+          .fontSize(AppTheme.uiFontSize(13))
           .fontWeight(FontWeight.Medium)
           .fontColor(AppTheme.ACCENT)
-          .onClick(() => router.pushUrl({ url: 'pages/ColorPickerPage' }))
+          .onClick(() => this.openRoute('pages/ColorPickerPage'))
       }
       .width('100%')
       .margin({ bottom: 7 })
@@ -285,8 +298,9 @@ struct Index {
                   .shadow({ radius: this.selectedColorIndex === index ? 8 : 0, color: item.textColor === '#RAINBOW' ? '#F40071' : item.textColor })
               }
               Text(item.name)
-                .fontSize(10)
+                .fontSize(AppTheme.uiFontSize(12))
                 .fontColor(AppTheme.TEXT_SECONDARY)
+                .fontWeight(AppTheme.UI_FONT_WEIGHT)
                 .margin({ top: 4 })
                 .maxLines(1)
             }
@@ -301,11 +315,11 @@ struct Index {
         })
       }
       .columnsTemplate('1fr 1fr 1fr 1fr 1fr 1fr')
-      .rowsGap(8)
-      .height(100)
+      .rowsGap(10)
+      .height(108)
     }
     .width('100%')
-    .margin({ bottom: 5 })
+    .margin({ bottom: AppTheme.PAGE_SECTION_GAP })
   }
 
   @Builder
@@ -320,6 +334,7 @@ struct Index {
       })
     }
     .width('100%')
+    .margin({ bottom: AppTheme.PAGE_SECTION_GAP })
   }
 
   @Builder
@@ -327,8 +342,9 @@ struct Index {
     Row() {
       Text(label)
         .width(76)
-        .fontSize(13)
+        .fontSize(AppTheme.uiFontSize(13))
         .fontColor(AppTheme.TEXT_SECONDARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
       Slider({ value: value, min: min, max: max, step: 1, style: SliderStyle.InSet })
         .layoutWeight(1)
         .selectedColor(AppTheme.ACCENT)
@@ -337,8 +353,9 @@ struct Index {
         .onChange((next: number) => change(Math.round(next)))
       Text(`${Math.round(value)}`)
         .width(30)
-        .fontSize(14)
+        .fontSize(AppTheme.uiFontSize(14))
         .fontColor(AppTheme.ACCENT)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
         .textAlign(TextAlign.End)
     }
     .width('100%')
@@ -350,8 +367,9 @@ struct Index {
   buildOtherSettings() {
     Column() {
       Text('其他设置')
-        .fontSize(13)
+        .fontSize(AppTheme.uiFontSize(13))
         .fontColor(AppTheme.TEXT_SECONDARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
         .alignSelf(ItemAlign.Start)
       Column() {
         this.buildSettingRow('◫', '镜像翻转', this.isMirrored, (value: boolean) => this.isMirrored = value)
@@ -359,12 +377,12 @@ struct Index {
         this.buildSettingRow('▣', '横屏显示', this.isLandscape, (value: boolean) => this.isLandscape = value)
       }
       .width('100%')
-      .padding({ left: 8, right: 4 })
-      .backgroundColor('#091426')
+      .padding({ left: 8, right: 4, top: AppTheme.SETTING_PANEL_VERTICAL_PADDING, bottom: AppTheme.SETTING_PANEL_VERTICAL_PADDING })
+      .backgroundColor(AppTheme.SETTING_PANEL_BG)
       .borderRadius(8)
     }
     .width('100%')
-    .margin({ top: 2, bottom: 10 })
+    .margin({ top: AppTheme.PAGE_SECTION_GAP, bottom: AppTheme.PAGE_SECTION_GAP })
   }
 
   @Builder
@@ -372,20 +390,23 @@ struct Index {
     Row() {
       Text(icon)
         .width(28)
-        .fontSize(15)
+        .fontSize(AppTheme.uiFontSize(15))
         .fontColor(AppTheme.TEXT_SECONDARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
       Text(label)
-        .fontSize(13)
+        .fontSize(AppTheme.uiFontSize(13))
         .fontColor(AppTheme.TEXT_SECONDARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
       Blank()
       Toggle({ type: ToggleType.Switch, isOn: enabled })
         .width(42)
         .height(26)
-        .selectedColor('#149CF2')
+        .selectedColor(AppTheme.ACCENT)
+        .switchStyle({ unselectedColor: AppTheme.TOGGLE_OFF_TRACK, pointColor: AppTheme.TOGGLE_THUMB })
         .onChange((value: boolean) => change(value))
     }
     .width('100%')
-    .height(27)
+    .height(AppTheme.SETTING_ROW_HEIGHT)
     .alignItems(VerticalAlign.Center)
   }
 
@@ -397,7 +418,7 @@ struct Index {
     .width('100%')
     .constraintSize({ maxWidth: 620 })
     .alignSelf(ItemAlign.Center)
-    .padding({ left: AppTheme.PAGE_PADDING, right: AppTheme.PAGE_PADDING, top: 7, bottom: 9 })
+    .padding({ left: AppTheme.PAGE_PADDING, right: AppTheme.PAGE_PADDING, top: 10, bottom: 12 })
     .backgroundColor(AppTheme.PAGE_BG)
   }
 
@@ -406,9 +427,9 @@ struct Index {
     Button('▶  开始显示')
       .width('100%')
       .height(48)
-      .fontSize(17)
+      .fontSize(AppTheme.uiFontSize(17))
       .fontWeight(FontWeight.Bold)
-      .fontColor('#FFFFFF')
+      .fontColor(AppTheme.ON_ACCENT)
       .backgroundColor('#05BFE7')
       .linearGradient({ angle: 90, colors: [[AppTheme.ACCENT, 0.0], [AppTheme.ACCENT_BLUE, 1.0]] })
       .borderRadius(12)
@@ -425,47 +446,73 @@ struct Index {
       ForEach(this.navOptions, (item: NavOption, index: number) => {
         Column() {
           Text(item.icon)
-            .fontSize(index === 0 ? 25 : 23)
+            .width('100%')
+            .height(AppTheme.NAV_ICON_SLOT_HEIGHT)
+            .lineHeight(AppTheme.NAV_ICON_SLOT_HEIGHT)
+            .fontSize(26)
             .fontWeight(index === 0 ? FontWeight.Bold : FontWeight.Normal)
             .fontColor(index === 0 ? AppTheme.ACCENT : AppTheme.TEXT_SECONDARY)
+            .textAlign(TextAlign.Center)
           Text(item.label)
-            .fontSize(10)
+            .width('100%')
+            .height(16)
+            .lineHeight(16)
+            .fontSize(AppTheme.uiFontSize(12))
             .fontColor(index === 0 ? AppTheme.ACCENT : AppTheme.TEXT_SECONDARY)
-            .margin({ top: 2 })
+            .fontWeight(AppTheme.UI_FONT_WEIGHT)
+            .textAlign(TextAlign.Center)
+            .margin({ top: 4 })
         }
         .width('25%')
-        .height(62)
+        .height(AppTheme.BOTTOM_NAV_HEIGHT)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
         .onClick(() => this.openTab(index))
       })
     }
     .width('100%')
-    .height(66)
-    .backgroundColor('#020A14')
+    .height(AppTheme.BOTTOM_NAV_HEIGHT)
+    .backgroundColor(AppTheme.SYSTEM_NAVIGATION_BAR)
     .border({ width: { top: 1 }, color: '#10233B' })
   }
 
+  private async openRoute(url: string): Promise<void> {
+    try {
+      await UiContextHelper.pushUrl(this.getUIContext(), url)
+    } catch (error) {
+      console.error(`Index: failed to open ${url}: ${JSON.stringify(error)}`)
+      UiContextHelper.showToast(this.getUIContext(), '页面打开失败，请重试')
+    }
+  }
+
+  private persistDisplayConfig(config: BannerConfig): void {
+    this.storageService.init(UiContextHelper.requireHostContext(this.getUIContext()))
+      .then(() => this.storageService.saveDisplayConfig(config))
+      .catch((error: Error) => {
+        console.error(`Index: failed to persist display config: ${JSON.stringify(error)}`)
+      })
+  }
+
   private openTab(index: number): void {
-    if (index === 1) router.pushUrl({ url: 'pages/TemplatePage' })
-    if (index === 2) router.pushUrl({ url: 'pages/HistoryPage' })
-    if (index === 3) router.pushUrl({ url: 'pages/CounterPage' })
+    if (index === 1) this.openRoute('pages/TemplatePage')
+    if (index === 2) this.openRoute('pages/HistoryPage')
+    if (index === 3) this.openRoute('pages/CounterPage')
   }
 
   private async startDisplay(): Promise<void> {
     if (!this.text.trim()) {
-      promptAction.showToast({ message: '请输入要显示的文字' })
+      UiContextHelper.showToast(this.getUIContext(), '请输入要显示的文字')
       return
     }
     if (this.isStarting) return
     this.isStarting = true
     try {
       const config = this.buildConfig()
-      await this.storageService.saveLastConfig(config)
-      await this.storageService.addHistory(config)
-      router.pushUrl({ url: 'pages/DisplayPage', params: new DisplayRouteParams(JSON.stringify(config)) })
+      await UiContextHelper.pushUrl(this.getUIContext(), 'pages/DisplayPage',
+        new DisplayRouteParams(JSON.stringify(config)))
+      this.persistDisplayConfig(config)
     } catch (e) {
-      promptAction.showToast({ message: '启动失败，请重试' })
+      UiContextHelper.showToast(this.getUIContext(), '启动失败，请重试')
     } finally {
       this.isStarting = false
     }

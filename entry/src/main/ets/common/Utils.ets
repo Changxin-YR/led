@@ -11,6 +11,35 @@ export class RgbColor {
 }
 
 export class Utils {
+  private static isHexColor(color: string): boolean {
+    return /^#[0-9A-Fa-f]{6}$/.test(color)
+  }
+
+  private static getRelativeLuminance(color: string): number {
+    const rgb = Utils.hexToRgb(color)
+    const toLinear = (channel: number): number => {
+      const value = channel / 255
+      return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4)
+    }
+    return 0.2126 * toLinear(rgb.r) + 0.7152 * toLinear(rgb.g) + 0.0722 * toLinear(rgb.b)
+  }
+
+  static getContrastRatio(foreground: string, background: string): number {
+    if (!Utils.isHexColor(foreground) || !Utils.isHexColor(background)) return 0
+    const foregroundLuminance = Utils.getRelativeLuminance(foreground)
+    const backgroundLuminance = Utils.getRelativeLuminance(background)
+    return (Math.max(foregroundLuminance, backgroundLuminance) + 0.05) /
+      (Math.min(foregroundLuminance, backgroundLuminance) + 0.05)
+  }
+
+  static ensureTextContrast(requestedColor: string, backgroundColor: string): string {
+    const safeBackground = Utils.isHexColor(backgroundColor) ? backgroundColor : '#000000'
+    if (Utils.getContrastRatio(requestedColor, safeBackground) >= 4.5) return requestedColor
+    const blackContrast = Utils.getContrastRatio('#000000', safeBackground)
+    const whiteContrast = Utils.getContrastRatio('#FFFFFF', safeBackground)
+    return blackContrast >= whiteContrast ? '#000000' : '#FFFFFF'
+  }
+
   static generateId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substring(2, 8)
   }

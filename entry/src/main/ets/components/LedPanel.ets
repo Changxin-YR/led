@@ -1,4 +1,5 @@
 import { AppTheme } from '../common/Theme'
+import { Utils } from '../common/Utils'
 
 @Component
 export struct LedPanel {
@@ -9,8 +10,9 @@ export struct LedPanel {
   @Prop radius: number = AppTheme.PANEL_RADIUS
   @Prop showGlow: boolean = true
 
+  // Keep the helper as the component's visual token seam for existing UI contracts.
   private dotColor(): string {
-    return this.color === '#000000' ? '#52647A' : this.color
+    return AppTheme.LED_MATRIX_DOT_COLOR
   }
 
   build() {
@@ -23,10 +25,10 @@ export struct LedPanel {
         ' · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · · ·')
         .width('100%')
         .height('100%')
-        .fontSize(8)
+        .fontSize(AppTheme.LED_MATRIX_DOT_FONT_SIZE)
         .lineHeight(10)
-        .fontColor(this.dotColor())
-        .opacity(0.25)
+        .fontColor(AppTheme.LED_MATRIX_DOT_COLOR)
+        .opacity(AppTheme.LED_MATRIX_DOT_OPACITY)
         .textAlign(TextAlign.Center)
         .maxLines(8)
         .padding({ left: 4, right: 4 })
@@ -34,7 +36,7 @@ export struct LedPanel {
       Text(this.text)
         .fontSize(this.fontSize)
         .fontWeight(FontWeight.Bold)
-        .fontColor(this.color)
+        .fontColor(Utils.ensureTextContrast(this.color, '#01060C'))
         .fontFamily('monospace')
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })

@@ -21,10 +21,16 @@ export class ScreenService {
     const currentWindow = this.win
     if (!currentWindow) return
 
-    await this.runWindowOperation('restore standard layout', () => currentWindow.setWindowLayoutFullScreen(false))
+    await this.runWindowOperation('restore automatic orientation', () =>
+      currentWindow.setPreferredOrientation(window.Orientation.UNSPECIFIED))
+    await this.runWindowOperation('apply window background color', async () => {
+      currentWindow.setWindowBackgroundColor(AppTheme.PAGE_BG)
+    })
+    await this.runWindowOperation('restore standard window layout', () =>
+      currentWindow.setWindowLayoutFullScreen(false))
     await this.runWindowOperation('show system bars', () => currentWindow.setWindowSystemBarEnable(['status', 'navigation']))
     await this.runWindowOperation('apply system bar colors', () => currentWindow.setWindowSystemBarProperties({
-      statusBarColor: AppTheme.SYSTEM_STATUS_BAR,
+      statusBarColor: AppTheme.PAGE_BG,
       navigationBarColor: AppTheme.SYSTEM_NAVIGATION_BAR,
       statusBarContentColor: AppTheme.TEXT_PRIMARY,
       navigationBarContentColor: AppTheme.TEXT_PRIMARY,
@@ -49,8 +55,8 @@ export class ScreenService {
     const currentWindow = this.win
     if (!currentWindow) return
 
-    await this.runWindowOperation('restore portrait orientation', () =>
-      currentWindow.setPreferredOrientation(window.Orientation.PORTRAIT))
+    await this.runWindowOperation('restore automatic orientation', () =>
+      currentWindow.setPreferredOrientation(window.Orientation.UNSPECIFIED))
     await this.applyAppChrome()
     await this.runWindowOperation('restore screen timeout', () => currentWindow.setWindowKeepScreenOn(false))
     await this.runWindowOperation('restore automatic brightness', () => currentWindow.setWindowBrightness(-1))

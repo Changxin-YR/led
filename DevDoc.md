@@ -1,10 +1,10 @@
-# LED滚动字幕 - 鸿蒙应用开发文档
+# 光迹字幕 - 鸿蒙应用开发文档
 
 ## 一、产品概述
 
 ### 1.1 产品定位
 
-**LED滚动字幕**是一款纯鸿蒙本地应用，将手机屏幕变为LED滚动显示屏，适用于演唱会应援、接机举牌、表白告白、店铺广告、课堂通知、聚会互动等场景。无需登录、无需联网，即开即用。
+**光迹字幕**是一款纯鸿蒙本地应用，将手机屏幕变为LED滚动显示屏，适用于演唱会应援、接机举牌、表白告白、店铺广告、课堂通知、聚会互动等场景。无需登录、无需联网，即开即用。
 
 ### 1.2 目标用户
 
@@ -56,8 +56,8 @@
 | 预设模板 | 演唱会应援/接机/表白/促销等场景模板 | P1 |
 | 历史记录 | 本地保存最近使用的文字和配置 | P1 |
 | 镜像翻转 | 水平镜像（适合透过玻璃展示） | P1 |
-| LED点阵风格 | 模拟真实LED点阵显示效果 | P1 |
-| 边框装饰 | 可选闪烁边框、霓虹灯效果 | P2 |
+| 点阵预览风格 | 首页、模板和历史卡片使用LED点阵背景；全屏展示页使用标准文字渲染 | P1 |
+| 边框装饰 | 可选静态彩色描边 | P2 |
 | 多行弹幕 | 多条文字同时弹幕式滚动 | P2 |
 | 计数器模式 | 点击屏幕+1/-1计数显示 | P2 |
 | 倒计时模式 | 大字体倒计时显示 | P2 |
@@ -86,7 +86,7 @@
 
 #### 2.2.3 颜色系统
 
-**预设配色方案（12套）：**
+**配色入口（11套预设+1个自定义入口）：**
 1. 经典绿 - 绿字黑底（经典LED风格）
 2. 热情红 - 红字黑底（演唱会应援）
 3. 纯净白 - 白字黑底（通用）
@@ -138,8 +138,8 @@
 |------|--------|
 | 开发语言 | ArkTS 5.0 |
 | UI框架 | ArkUI声明式 |
-| SDK版本 | HarmonyOS SDK API 16 |
-| 最低兼容 | API 12 |
+| SDK版本 | HarmonyOS 6.0.2 API 22 兼容目标 |
+| 最低兼容 | API 22 |
 | 构建工具 | Hvigor |
 | 开发工具 | DevEco Studio 5.0+ |
 | 目标设备 | phone, tablet, 2in1 |
@@ -186,7 +186,7 @@ led-banner/
 │           ├── element/
 │           │   └── string.json
 │           └── media/
-│               └── app_icon.png          // 占位图标
+│               └── app_icon.png          // 应用图标
 ├── entry/
 │   ├── src/
 │   │   └── main/
@@ -240,9 +240,9 @@ led-banner/
 │   │       │       │   ├── color.json
 │   │       │       │   └── float.json
 │   │       │       ├── media/
-│   │       │       │   ├── icon.png           // 占位图标
-│   │       │       │   ├── startIcon.png      // 占位启动图标
-│   │       │       │   └── background.png     // 占位背景
+│   │       │       │   ├── icon.png           // 应用图标
+│   │       │       │   ├── startIcon.png      // 启动图标
+│   │       │       │   └── background.png     // 启动背景
 │   │       │       └── profile/
 │   │       │           └── main_pages.json
 │   │       └── module.json5
@@ -706,51 +706,51 @@ export class TemplateService {
     { id: 't1', name: '演唱会应援', category: TemplateCategory.CHEER,
       text: '我爱你', textColor: '#FF0000', backgroundColor: '#000000',
       displayMode: DisplayMode.SCROLL_HORIZONTAL, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.NORMAL, fontSize: 100, icon: 'placeholder_cheer' },
+      speedLevel: SpeedLevel.NORMAL, fontSize: 100, icon: 'cheer_love' },
     { id: 't2', name: '粉丝加油', category: TemplateCategory.CHEER,
       text: 'Fighting!', textColor: '#9B59B6', backgroundColor: '#000000',
       displayMode: DisplayMode.BLINK, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.NORMAL, fontSize: 90, icon: 'placeholder_fight' },
+      speedLevel: SpeedLevel.NORMAL, fontSize: 90, icon: 'cheer_fighting' },
     { id: 't3', name: '接人举牌', category: TemplateCategory.PICKUP,
       text: '接 XXX', textColor: '#FFFFFF', backgroundColor: '#000000',
       displayMode: DisplayMode.STATIC, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.NORMAL, fontSize: 120, icon: 'placeholder_pickup' },
+      speedLevel: SpeedLevel.NORMAL, fontSize: 120, icon: 'pickup_sign' },
     { id: 't4', name: '欢迎到来', category: TemplateCategory.PICKUP,
       text: '欢迎回家', textColor: '#FF8C00', backgroundColor: '#000000',
       displayMode: DisplayMode.BREATH, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.SLOW, fontSize: 100, icon: 'placeholder_welcome' },
+      speedLevel: SpeedLevel.SLOW, fontSize: 100, icon: 'pickup_welcome' },
     { id: 't5', name: '浪漫告白', category: TemplateCategory.LOVE,
       text: '我喜欢你', textColor: '#FF69B4', backgroundColor: '#000000',
       displayMode: DisplayMode.BREATH, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.SLOW, fontSize: 100, icon: 'placeholder_love' },
+      speedLevel: SpeedLevel.SLOW, fontSize: 100, icon: 'love_love' },
     { id: 't6', name: '求婚', category: TemplateCategory.LOVE,
       text: '嫁给我好吗？', textColor: '#FFD700', backgroundColor: '#000000',
       displayMode: DisplayMode.BLINK, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.SLOW, fontSize: 90, icon: 'placeholder_marry' },
+      speedLevel: SpeedLevel.SLOW, fontSize: 90, icon: 'love_proposal' },
     { id: 't7', name: '店铺促销', category: TemplateCategory.PROMO,
       text: '全场5折', textColor: '#FF8C00', backgroundColor: '#000000',
       displayMode: DisplayMode.SCROLL_HORIZONTAL, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.FAST, fontSize: 110, icon: 'placeholder_sale' },
+      speedLevel: SpeedLevel.FAST, fontSize: 110, icon: 'promo_sale' },
     { id: 't8', name: '开业大吉', category: TemplateCategory.PROMO,
       text: '盛大开业 欢迎光临', textColor: '#FF0000', backgroundColor: '#000000',
       displayMode: DisplayMode.SCROLL_HORIZONTAL, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.NORMAL, fontSize: 90, icon: 'placeholder_open' },
+      speedLevel: SpeedLevel.NORMAL, fontSize: 90, icon: 'promo_opening' },
     { id: 't9', name: '课堂通知', category: TemplateCategory.NOTICE,
       text: '请保持安静', textColor: '#00BFFF', backgroundColor: '#000000',
       displayMode: DisplayMode.STATIC, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.NORMAL, fontSize: 100, icon: 'placeholder_quiet' },
+      speedLevel: SpeedLevel.NORMAL, fontSize: 100, icon: 'notice_quiet' },
     { id: 't10', name: '排队叫号', category: TemplateCategory.NOTICE,
       text: '请1号到前台', textColor: '#00FF00', backgroundColor: '#000000',
       displayMode: DisplayMode.BLINK, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.NORMAL, fontSize: 100, icon: 'placeholder_queue' },
+      speedLevel: SpeedLevel.NORMAL, fontSize: 100, icon: 'notice_queue' },
     { id: 't11', name: '聚会游戏', category: TemplateCategory.FUN,
       text: '真心话大冒险', textColor: '#RAINBOW', backgroundColor: '#000000',
       displayMode: DisplayMode.NEON, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.NORMAL, fontSize: 80, icon: 'placeholder_game' },
+      speedLevel: SpeedLevel.NORMAL, fontSize: 80, icon: 'fun_game' },
     { id: 't12', name: '生日快乐', category: TemplateCategory.FUN,
       text: '生日快乐', textColor: '#FFD700', backgroundColor: '#000000',
       displayMode: DisplayMode.BREATH, scrollDirection: ScrollDirection.RIGHT_TO_LEFT,
-      speedLevel: SpeedLevel.SLOW, fontSize: 100, icon: 'placeholder_birthday' }
+      speedLevel: SpeedLevel.SLOW, fontSize: 100, icon: 'fun_birthday' }
   ]
 
   getAllTemplates(): Template[] {
@@ -814,7 +814,7 @@ export class TemplateService {
 - 顶部分类Tab（应援/接机/表白/促销/通知/互动）
 - Grid网格展示模板卡片
 - 卡片包含：模板名称、预览文字、配色预览
-- 点击卡片弹出编辑弹窗（可修改文字中的占位符）
+- 点击卡片弹出编辑弹窗（可修改模板中的示例文字）
 - 确认后跳转DisplayPage
 
 ### 7.4 HistoryPage.ets（历史记录页）
@@ -870,7 +870,7 @@ export class TemplateService {
 
 | 字段 | 内容 |
 |------|------|
-| 应用名称 | LED滚动字幕 |
+| 应用名称 | 光迹字幕 |
 | 包名 | com.ledscroll.banner |
 | 分类 | 工具 > 实用工具 |
 | 适用设备 | 手机、平板、2in1 |
@@ -884,14 +884,14 @@ export class TemplateService {
 **一句话介绍：** 把手机变成LED滚动显示屏，演唱会应援、接机举牌、店铺广告必备工具
 
 **详细描述：**
-LED滚动字幕是一款免费、无广告、无需登录的LED显示工具。将您的手机屏幕变为醒目的LED滚动显示屏，支持8种显示模式、12种预设配色、5档速度调节，适用于演唱会应援、机场接人、店铺促销、课堂通知等多种场景。
+光迹字幕是一款免费、无广告、无需登录的离线显示工具。将您的手机屏幕变为醒目的滚动显示屏，支持8种显示模式、11种预设配色和自定义颜色、5档速度调节，适用于演唱会应援、机场接人、店铺促销、课堂通知等多种场景。
 
 主要功能：
-- 8种显示模式：滚动、静态、闪烁、呼吸、弹幕、翻页、霓虹
-- 12种预设配色+自定义颜色
+- 8种显示模式：水平滚动、垂直滚动、静态、闪烁、呼吸、弹幕、翻页、霓虹
+- 11种预设配色+1个自定义颜色入口
 - 丰富的场景模板，一键使用
 - 全屏沉浸显示，最大亮度
-- 支持镜像翻转、LED点阵风格
+- 支持镜像翻转和可选静态彩色边框；配置页预览使用LED点阵背景
 - 计数器模式
 - 历史记录自动保存
 - 支持横屏显示
@@ -926,7 +926,7 @@ hvigorw assembleHap --no-daemon --mode module -p product=default -p buildMode=re
 |------|------|------|-------|
 | P1-基础框架 | 第1-2天 | 项目搭建、路由、数据模型、存储服务 | 可运行框架 |
 | P2-核心显示 | 第3-5天 | 首页UI、全屏显示页、滚动/静态/闪烁动画 | 核心功能可用 |
-| P3-丰富模式 | 第6-8天 | 呼吸/弹幕/翻页/霓虹模式、LED点阵风格 | 全部显示模式 |
+| P3-丰富模式 | 第6-8天 | 呼吸/弹幕/翻页/霓虹模式、点阵预览风格 | 全部显示模式 |
 | P4-模板系统 | 第9-10天 | 模板页、颜色选择器、历史记录 | 功能完备 |
 | P5-计数器+适配 | 第11-12天 | 计数器页、横屏适配、多设备适配 | 全设备可用 |
 | P6-打磨+上架 | 第13-15天 | 性能优化、边界情况处理、上架材料准备 | 可提审版本 |
@@ -961,9 +961,9 @@ hvigorw assembleHap --no-daemon --mode module -p product=default -p buildMode=re
 | 屏幕常亮 | 不息屏 | 待测 |
 | 最大亮度 | 进入全屏后亮度最大 | 待测 |
 | 镜像翻转 | 文字水平翻转 | 待测 |
-| LED点阵 | 点阵风格渲染 | 待测 |
-| 边框效果 | 闪烁边框 | 待测 |
-| 颜色预设 | 12套配色切换 | 待测 |
+| 点阵预览 | 配置页和卡片点阵背景 | 待测 |
+| 边框效果 | 静态彩色描边 | 待测 |
+| 颜色入口 | 11套预设与自定义颜色 | 待测 |
 | 自定义颜色 | 色轮+RGB输入 | 待测 |
 | 模板选择 | 12个模板一键应用 | 待测 |
 | 历史记录 | 保存/恢复/删除/清空 | 待测 |

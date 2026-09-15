@@ -1,4 +1,3 @@
-import { router, promptAction } from '@kit.ArkUI'
 import { Template, TemplateCategory } from '../models/Template'
 import { BannerConfig, DEFAULT_CONFIG, SpeedLevel, DisplayRouteParams } from '../models/BannerConfig'
 import { TemplateService } from '../services/TemplateService'
@@ -7,6 +6,7 @@ import { Utils } from '../common/Utils'
 import { Constants } from '../common/Constants'
 import { AppTheme } from '../common/Theme'
 import { LedPanel } from '../components/LedPanel'
+import { UiContextHelper } from '../common/UiContextHelper'
 
 @Entry
 @Component
@@ -20,6 +20,7 @@ struct TemplatePage {
   @State editSpeedLevel: number = 3
   @State editTemplate: Template | null = null
   @State columnTemplate: string = '1fr 1fr'
+  @State isStarting: boolean = false
   private templateService: TemplateService = TemplateService.getInstance()
   private storageService: StorageService = StorageService.getInstance()
 
@@ -62,20 +63,20 @@ struct TemplatePage {
       Text('‹')
         .fontSize(38)
         .fontColor(AppTheme.TEXT_PRIMARY)
-        .width(36)
+        .width(40)
         .height(48)
         .textAlign(TextAlign.Center)
-        .onClick(() => router.back())
+        .onClick(() => UiContextHelper.back(this.getUIContext()))
       Text('场景模板')
-        .fontSize(20)
+        .fontSize(AppTheme.uiFontSize(20))
         .fontWeight(FontWeight.Bold)
         .fontColor(AppTheme.TEXT_PRIMARY)
-        .margin({ left: 6 })
+        .margin({ left: 8 })
       Blank()
     }
     .width('100%')
-    .height(62)
-    .padding({ left: 12, right: 16 })
+    .height(AppTheme.HEADER_HEIGHT)
+    .padding({ left: AppTheme.PAGE_PADDING, right: AppTheme.PAGE_PADDING })
     .alignItems(VerticalAlign.Center)
   }
 
@@ -86,10 +87,11 @@ struct TemplatePage {
         ForEach(this.categories, (category: string) => {
           Text(category)
             .height(34)
-            .fontSize(14)
-            .fontColor(this.selectedCategory === category ? '#FFFFFF' : AppTheme.TEXT_SECONDARY)
+            .fontSize(AppTheme.uiFontSize(14))
+            .fontColor(this.selectedCategory === category ? AppTheme.ON_ACCENT : AppTheme.TEXT_SECONDARY)
+            .fontWeight(AppTheme.UI_FONT_WEIGHT)
             .padding({ left: 17, right: 17 })
-            .margin({ right: 9 })
+            .margin({ right: AppTheme.CARD_GAP })
             .backgroundColor(this.selectedCategory === category ? '#05BDEB' : AppTheme.SURFACE_SOFT)
             .borderRadius(18)
             .border({ width: 1, color: this.selectedCategory === category ? AppTheme.ACCENT : '#1B2D46' })
@@ -101,12 +103,13 @@ struct TemplatePage {
             })
         })
       }
-      .padding({ left: 16, right: 16 })
+      .padding({ left: AppTheme.PAGE_PADDING, right: AppTheme.PAGE_PADDING })
     }
     .scrollable(ScrollDirection.Horizontal)
     .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     .width('100%')
-    .height(48)
+    .height(54)
   }
 
   @Builder
@@ -117,11 +120,12 @@ struct TemplatePage {
       }, (item: Template) => item.id)
     }
     .columnsTemplate(this.columnTemplate)
-    .columnsGap(12)
-    .rowsGap(14)
-    .padding({ left: 16, right: 16, top: 10, bottom: 16 })
+    .columnsGap(AppTheme.CARD_GAP)
+    .rowsGap(AppTheme.CARD_GAP)
+    .padding({ left: AppTheme.PAGE_PADDING, right: AppTheme.PAGE_PADDING, top: AppTheme.CARD_GAP, bottom: 16 })
     .layoutWeight(1)
     .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   @Builder
@@ -136,14 +140,16 @@ struct TemplatePage {
       })
       Text(item.name)
         .width('100%')
-        .fontSize(14)
+        .fontSize(AppTheme.uiFontSize(14))
         .fontColor(AppTheme.TEXT_PRIMARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
         .margin({ top: 9 })
         .maxLines(1)
       Text('点击编辑并开始展示')
         .width('100%')
-        .fontSize(12)
+        .fontSize(AppTheme.uiFontSize(12))
         .fontColor(AppTheme.TEXT_SECONDARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
         .margin({ top: 5 })
     }
     .width('100%')
@@ -165,15 +171,16 @@ struct TemplatePage {
         .onClick(() => this.showEditDialog = false)
       Column() {
         Text('使用模板')
-          .fontSize(19)
+          .fontSize(AppTheme.uiFontSize(19))
           .fontWeight(FontWeight.Bold)
           .fontColor(AppTheme.TEXT_PRIMARY)
           .margin({ bottom: 14 })
         TextArea({ text: this.editText, placeholder: '请输入文字...' })
           .width('100%')
           .height(76)
-          .fontSize(16)
+          .fontSize(AppTheme.uiFontSize(16))
           .fontColor(AppTheme.TEXT_PRIMARY)
+          .fontWeight(AppTheme.UI_FONT_WEIGHT)
           .backgroundColor(AppTheme.SURFACE_SOFT)
           .borderRadius(9)
           .maxLength(Constants.MAX_TEXT_LENGTH)
@@ -183,6 +190,7 @@ struct TemplatePage {
             .layoutWeight(1)
             .height(44)
             .fontColor(AppTheme.TEXT_SECONDARY)
+            .fontWeight(AppTheme.UI_FONT_WEIGHT)
             .backgroundColor(AppTheme.SURFACE_SOFT)
             .borderRadius(10)
             .margin({ right: 6 })
@@ -190,15 +198,14 @@ struct TemplatePage {
           Button('开始显示')
             .layoutWeight(1)
             .height(44)
-            .fontColor('#FFFFFF')
+            .fontColor(AppTheme.ON_ACCENT)
             .fontWeight(FontWeight.Bold)
             .backgroundColor(AppTheme.ACCENT_BLUE)
             .borderRadius(10)
             .margin({ left: 6 })
-            .onClick(() => {
-              this.showEditDialog = false
-              this.confirmTemplate()
-            })
+            .enabled(!this.isStarting)
+            .opacity(this.isStarting ? 0.6 : 1)
+            .onClick(() => this.confirmTemplate())
         }
         .width('100%')
         .margin({ top: 18 })
@@ -221,14 +228,25 @@ struct TemplatePage {
     this.showEditDialog = true
   }
 
+  private persistDisplayConfig(config: BannerConfig): void {
+    this.storageService.init(UiContextHelper.requireHostContext(this.getUIContext()))
+      .then(() => this.storageService.saveDisplayConfig(config))
+      .catch((error: Error) => {
+        console.error(`TemplatePage: failed to persist display config: ${JSON.stringify(error)}`)
+      })
+  }
+
   private async confirmTemplate(): Promise<void> {
     if (!this.editTemplate) return
     if (!this.editText.trim()) {
-      promptAction.showToast({ message: '请输入要显示的文字' })
+      UiContextHelper.showToast(this.getUIContext(), '请输入要显示的文字')
       return
     }
+    if (this.isStarting) return
+    this.isStarting = true
     const config: BannerConfig = {
-      id: Utils.generateId(), text: this.editText, textColor: this.editTemplate.textColor,
+      id: Utils.generateId(), text: this.editText,
+      textColor: Utils.ensureTextContrast(this.editTemplate.textColor, this.editTemplate.backgroundColor),
       backgroundColor: this.editTemplate.backgroundColor, fontSize: this.editFontSize,
       displayMode: this.editTemplate.displayMode, scrollDirection: this.editTemplate.scrollDirection,
       speedLevel: this.editSpeedLevel as SpeedLevel, ledStyle: DEFAULT_CONFIG.ledStyle,
@@ -236,9 +254,16 @@ struct TemplatePage {
       borderColor: DEFAULT_CONFIG.borderColor, isLandscape: DEFAULT_CONFIG.isLandscape,
       createdAt: Date.now()
     }
-    await this.storageService.init(getContext(this))
-    await this.storageService.saveLastConfig(config)
-    await this.storageService.addHistory(config)
-    router.pushUrl({ url: 'pages/DisplayPage', params: new DisplayRouteParams(JSON.stringify(config)) })
+    try {
+      this.showEditDialog = false
+      await UiContextHelper.pushUrl(this.getUIContext(), 'pages/DisplayPage',
+        new DisplayRouteParams(JSON.stringify(config)))
+      this.persistDisplayConfig(config)
+    } catch (error) {
+      console.error(`TemplatePage: failed to start template: ${JSON.stringify(error)}`)
+      UiContextHelper.showToast(this.getUIContext(), '模板启动失败，请重试')
+    } finally {
+      this.isStarting = false
+    }
   }
 }

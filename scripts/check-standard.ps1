@@ -93,12 +93,68 @@ if (Test-Path "tasks.md") {
   }
 }
 
-# 8. 窗口与系统栏状态合同
-Write-Host "`n[窗口状态合同]" -ForegroundColor White
+# 8. 自动化合同
+Write-Host "`n[Accessibility contrast contract]" -ForegroundColor White
+try {
+  & (Join-Path $PSScriptRoot 'test-accessibility-contract.ps1')
+} catch {
+  Write-Host "  [FAIL] Accessibility contrast contract failed" -ForegroundColor Red
+  $script:ErrorCount++
+}
+
+Write-Host "`n[Display safety and click response contract]" -ForegroundColor White
+try {
+  & (Join-Path $PSScriptRoot 'test-display-safety-contract.ps1')
+} catch {
+  Write-Host "  [FAIL] Display safety and click response contract failed" -ForegroundColor Red
+  $script:ErrorCount++
+}
+
+Write-Host "`n[AppGallery rejection remediation contract]" -ForegroundColor White
+try {
+  & (Join-Path $PSScriptRoot 'test-appgallery-remediation-contract.ps1')
+} catch {
+  Write-Host "  [FAIL] AppGallery rejection remediation contract failed" -ForegroundColor Red
+  $script:ErrorCount++
+}
+
+Write-Host "`n[Responsive layout contract]" -ForegroundColor White
+try {
+  & (Join-Path $PSScriptRoot 'test-responsive-layout.ps1')
+} catch {
+  Write-Host "  [FAIL] Responsive layout contract failed" -ForegroundColor Red
+  $script:ErrorCount++
+}
+
+Write-Host "`n[Window and system bar contract]" -ForegroundColor White
 try {
   & (Join-Path $PSScriptRoot 'test-window-layout.ps1')
 } catch {
   Write-Host "  [FAIL] 窗口状态合同未通过" -ForegroundColor Red
+  $script:ErrorCount++
+}
+
+Write-Host "`n[Layered application icon contract]" -ForegroundColor White
+try {
+  & (Join-Path $PSScriptRoot 'test-icon-assets.ps1')
+} catch {
+  Write-Host "  [FAIL] Layered application icon contract failed" -ForegroundColor Red
+  $script:ErrorCount++
+}
+
+Write-Host "`n[Release readiness contract]" -ForegroundColor White
+try {
+  & (Join-Path $PSScriptRoot 'test-release-contract.ps1')
+} catch {
+  Write-Host "  [FAIL] Release readiness contract failed" -ForegroundColor Red
+  $script:ErrorCount++
+}
+
+Write-Host "`n[AppGallery acceptance contract]" -ForegroundColor White
+try {
+  & (Join-Path $PSScriptRoot 'test-appgallery-acceptance.ps1')
+} catch {
+  Write-Host "  [FAIL] AppGallery acceptance contract failed" -ForegroundColor Red
   $script:ErrorCount++
 }
 

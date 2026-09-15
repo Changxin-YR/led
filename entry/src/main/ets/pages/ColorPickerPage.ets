@@ -1,8 +1,8 @@
-import { router } from '@kit.ArkUI'
 import { StorageService } from '../services/StorageService'
 import { Utils } from '../common/Utils'
 import { AppTheme } from '../common/Theme'
 import { LedPanel } from '../components/LedPanel'
+import { UiContextHelper } from '../common/UiContextHelper'
 
 @Entry
 @Component
@@ -15,6 +15,7 @@ struct ColorPickerPage {
   @State greenValue: number = 229
   @State blueValue: number = 255
   @State customColors: string[] = []
+  @State isSaving: boolean = false
   private storageService: StorageService = StorageService.getInstance()
   private defaultRecentColors: string[] = ['#00E5FF', '#9346D8', '#F04F98', '#FF9800', '#FFE000', '#00D735']
 
@@ -24,8 +25,14 @@ struct ColorPickerPage {
   }
 
   private async loadCustomColors(): Promise<void> {
-    await this.storageService.init(getContext(this))
-    this.customColors = await this.storageService.getCustomColors()
+    try {
+      await this.storageService.init(UiContextHelper.requireHostContext(this.getUIContext()))
+      this.customColors = await this.storageService.getCustomColors()
+    } catch (error) {
+      this.customColors = []
+      console.error(`ColorPickerPage: failed to load custom colors: ${JSON.stringify(error)}`)
+      UiContextHelper.showToast(this.getUIContext(), '最近颜色加载失败')
+    }
   }
 
   private updateColorFromHsv(): void {
@@ -64,6 +71,18 @@ struct ColorPickerPage {
     return colors.slice(0, 6)
   }
 
+  private persistCustomColor(color: string): void {
+    this.storageService.init(UiContextHelper.requireHostContext(this.getUIContext()))
+      .then(() => this.storageService.saveCustomColor(color))
+      .catch((error: Error) => {
+        console.error(`ColorPickerPage: failed to persist custom color: ${JSON.stringify(error)}`)
+      })
+  }
+
+  private addRecentColor(color: string): void {
+    this.customColors = [color, ...this.customColors.filter((item: string) => item !== color)].slice(0, 10)
+  }
+
   build() {
     Column() {
       this.buildHeader()
@@ -86,10 +105,11 @@ struct ColorPickerPage {
         .width('100%')
         .constraintSize({ maxWidth: 620 })
         .alignSelf(ItemAlign.Center)
-        .padding({ left: 18, right: 18, bottom: 24 })
+        .padding({ left: AppTheme.PAGE_PADDING, right: AppTheme.PAGE_PADDING, bottom: 24 })
       }
       .layoutWeight(1)
       .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
     .width('100%')
     .height('100%')
@@ -102,20 +122,20 @@ struct ColorPickerPage {
       Text('‹')
         .fontSize(38)
         .fontColor(AppTheme.TEXT_PRIMARY)
-        .width(36)
+        .width(40)
         .height(48)
         .textAlign(TextAlign.Center)
-        .onClick(() => router.back())
+        .onClick(() => UiContextHelper.back(this.getUIContext()))
       Text('自定义颜色')
-        .fontSize(20)
+        .fontSize(AppTheme.uiFontSize(20))
         .fontWeight(FontWeight.Bold)
         .fontColor(AppTheme.TEXT_PRIMARY)
-        .margin({ left: 6 })
+        .margin({ left: 8 })
       Blank()
     }
     .width('100%')
-    .height(62)
-    .padding({ left: 12, right: 12 })
+    .height(AppTheme.HEADER_HEIGHT)
+    .padding({ left: AppTheme.PAGE_PADDING, right: AppTheme.PAGE_PADDING })
     .alignItems(VerticalAlign.Center)
   }
 
@@ -125,8 +145,9 @@ struct ColorPickerPage {
       LedPanel({ text: 'Aa 预览', color: this.currentColor, panelHeight: 152, fontSize: 43, radius: 14 })
       Row() {
         Text(this.currentColor.toUpperCase())
-          .fontSize(14)
+          .fontSize(AppTheme.uiFontSize(14))
           .fontColor(AppTheme.TEXT_PRIMARY)
+          .fontWeight(AppTheme.UI_FONT_WEIGHT)
         Text('▣')
           .fontSize(17)
           .fontColor(AppTheme.TEXT_PRIMARY)
@@ -141,7 +162,7 @@ struct ColorPickerPage {
       .alignItems(VerticalAlign.Center)
     }
     .width('100%')
-    .margin({ top: 8, bottom: 18 })
+    .margin({ top: AppTheme.PAGE_SECTION_GAP, bottom: AppTheme.PAGE_SECTION_GAP })
     .alignItems(HorizontalAlign.Center)
   }
 
@@ -150,12 +171,14 @@ struct ColorPickerPage {
     Column() {
       Row() {
         Text('色相 (H)')
-          .fontSize(13)
+          .fontSize(AppTheme.uiFontSize(13))
           .fontColor(AppTheme.TEXT_SECONDARY)
+          .fontWeight(AppTheme.UI_FONT_WEIGHT)
         Blank()
         Text(`${Math.round(this.hue)}°`)
-          .fontSize(13)
+          .fontSize(AppTheme.uiFontSize(13))
           .fontColor(AppTheme.TEXT_PRIMARY)
+          .fontWeight(AppTheme.UI_FONT_WEIGHT)
       }
       .width('100%')
       Stack({ alignContent: Alignment.Center }) {
@@ -185,7 +208,7 @@ struct ColorPickerPage {
       .height(32)
     }
     .width('100%')
-    .margin({ bottom: 14 })
+    .margin({ bottom: AppTheme.PAGE_SECTION_GAP })
   }
 
   @Builder
@@ -193,12 +216,14 @@ struct ColorPickerPage {
     Column() {
       Row() {
         Text(label)
-          .fontSize(13)
+          .fontSize(AppTheme.uiFontSize(13))
           .fontColor(AppTheme.TEXT_SECONDARY)
+          .fontWeight(AppTheme.UI_FONT_WEIGHT)
         Blank()
         Text(`${value}%`)
-          .fontSize(13)
+          .fontSize(AppTheme.uiFontSize(13))
           .fontColor(AppTheme.TEXT_PRIMARY)
+          .fontWeight(AppTheme.UI_FONT_WEIGHT)
       }
       .width('100%')
       Slider({ value: value, min: 0, max: 100, step: 1, style: SliderStyle.InSet })
@@ -209,15 +234,16 @@ struct ColorPickerPage {
         .onChange((next: number) => change(Math.round(next)))
     }
     .width('100%')
-    .margin({ bottom: 15 })
+    .margin({ bottom: AppTheme.PAGE_SECTION_GAP })
   }
 
   @Builder
   buildRgbInputs() {
     Column() {
       Text('RGB 数值')
-        .fontSize(13)
+        .fontSize(AppTheme.uiFontSize(13))
         .fontColor(AppTheme.TEXT_SECONDARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
         .alignSelf(ItemAlign.Start)
         .margin({ bottom: 4 })
       Row() {
@@ -236,24 +262,30 @@ struct ColorPickerPage {
   buildRgbField(label: string, value: number, change: (value: number) => void) {
     Column() {
       Text(label)
-        .fontSize(12)
+        .fontSize(AppTheme.uiFontSize(12))
         .fontColor(AppTheme.TEXT_SECONDARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
         .margin({ bottom: 3 })
       TextInput({ text: value.toString() })
         .width('100%')
         .height(42)
-        .fontSize(16)
+        .fontSize(AppTheme.uiFontSize(16))
         .fontColor(AppTheme.TEXT_PRIMARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
         .textAlign(TextAlign.Center)
         .type(InputType.Number)
         .backgroundColor(AppTheme.SURFACE_SOFT)
         .borderRadius(8)
         .border({ width: 1, color: '#27374D' })
         .onChange((text: string) => {
-          const parsed = parseInt(text)
-          if (!isNaN(parsed) && parsed >= 0 && parsed <= 255) {
+          const isValidInput = /^\d+$/.test(text)
+          const parsed = isValidInput ? parseInt(text, 10) : -1
+          if (text.length === 0) return
+          if (isValidInput && parsed >= 0 && parsed <= 255) {
             change(parsed)
             this.updateColorFromRgb()
+          } else {
+            UiContextHelper.showToast(this.getUIContext(), 'RGB请输入0-255的整数')
           }
         })
     }
@@ -265,8 +297,9 @@ struct ColorPickerPage {
   buildRecentColors() {
     Column() {
       Text('最近使用')
-        .fontSize(13)
+        .fontSize(AppTheme.uiFontSize(13))
         .fontColor(AppTheme.TEXT_SECONDARY)
+        .fontWeight(AppTheme.UI_FONT_WEIGHT)
         .alignSelf(ItemAlign.Start)
         .margin({ bottom: 10 })
       Row() {
@@ -293,9 +326,9 @@ struct ColorPickerPage {
           .textAlign(TextAlign.Center)
           .borderRadius(12)
           .border({ width: 1, color: '#35455E' })
-          .onClick(async () => {
-            await this.storageService.saveCustomColor(this.currentColor)
-            this.customColors = await this.storageService.getCustomColors()
+          .onClick(() => {
+            this.addRecentColor(this.currentColor)
+            this.persistCustomColor(this.currentColor)
           })
       }
       .width('100%')
@@ -310,18 +343,23 @@ struct ColorPickerPage {
     Button('✓  确认选择')
       .width('100%')
       .height(58)
-      .fontSize(18)
+      .fontSize(AppTheme.uiFontSize(18))
       .fontWeight(FontWeight.Bold)
-      .fontColor('#FFFFFF')
+      .fontColor(AppTheme.ON_ACCENT)
       .backgroundColor(AppTheme.ACCENT)
       .linearGradient({ angle: 90, colors: [[AppTheme.ACCENT, 0.0], [AppTheme.ACCENT_BLUE, 1.0]] })
       .borderRadius(20)
       .border({ width: 1, color: '#67F8FF' })
       .shadow({ radius: 16, color: '#007EA6', offsetX: 0, offsetY: 3 })
-      .onClick(async () => {
-        await this.storageService.saveCustomColor(this.currentColor)
+      .enabled(!this.isSaving)
+      .onClick(() => {
+        if (this.isSaving) return
+        this.isSaving = true
+        this.addRecentColor(this.currentColor)
         AppStorage.setOrCreate<string>('customColorResult', this.currentColor)
-        router.back()
+        this.persistCustomColor(this.currentColor)
+        this.isSaving = false
+        UiContextHelper.back(this.getUIContext())
       })
   }
 }
